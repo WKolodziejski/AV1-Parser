@@ -72,27 +72,20 @@ public class Assembler {
             FileWriter writer = new FileWriter("Escolha.vhd");
             writer.append("library ieee;\n" +
                     "use ieee.std_logic_1164.all;\n" +
-                    "        use IEEE.std_logic_signed.all;\n" +
-                    "\n" +
-                    "use ieee.numeric_std.all; \n" +
-                    "--use ieee.std_logic_arith.all;\n" +
-                    "\n" +
-                    "\n" +
+                    "use IEEE.std_logic_signed.all;\n" +
+                    "use ieee.numeric_std.all; \n\n" +
                     "entity Escolha is\n" +
                     "\tport(vet_sel: in std_logic_vector(7 downto 0);\n" +
-                    "\t\t  S0, S3: out std_logic_vector(2 downto 0);\n" +
-                    "\t\t  S1, S2: out std_logic_vector(5 downto 0);\n" +
-                    "\t\t  sinalA0, sinalA1: out std_logic\n" +
-                    "        );\n" +
-                    "end Escolha;\n" +
-                    "\n" +
-                    "\n" +
+                    "\t\tS0, S3: out std_logic_vector(2 downto 0);\n" +
+                    "\t\tS1, S2: out std_logic_vector(5 downto 0);\n" +
+                    "\t\tsinalA0, sinalA1: out std_logic\n" +
+                    "\t\t);\n" +
+                    "end Escolha;\n\n\n" +
                     "architecture comportamento of Escolha is\n" +
                     "\tsignal aux8: signed (1 downto 0);\n" +
-                    "\tbegin \n" +
-                    "\tprocess (vet_sel)\n" +
                     "\tbegin\n" +
-                    "\n" +
+                    "\tprocess (vet_sel)\n" +
+                    "\tbegin\n\n" +
                     "\t\tcase vet_sel is\n\n");
 
             int f = 1;
@@ -119,16 +112,12 @@ public class Assembler {
                 writer.append("\t\t\t\tS3 <= \"" + a0.get(filters[i][3]) + "\";\n");
 
                 writer.append("\t\t\t\tsinalA1 <= " + (filters[i][0] < 0 ? "'1'" : "'0'") + ";\n\n");
-
             }
 
             writer.append("\t\t\twhen others =>\n" +
-                    "\t\t\t\taux8 <= \"00\";\n" +
-                    "\t\t\n" +
-                    "\t\tend case;\n" +
-                    "\n" +
-                    "\tend process;\n" +
-                    "\n" +
+                    "\t\t\t\taux8 <= \"00\";\n\t\t\n" +
+                    "\t\tend case;\n\n" +
+                    "\tend process;\n\n" +
                     "end comportamento;");
 
             writer.flush();

@@ -2,7 +2,7 @@ package psnr;
 
 import java.io.File;
 
-public class PSNR {
+public class BDBR {
 
     public static void main(String[] args) {
         if (args.length == 0)
