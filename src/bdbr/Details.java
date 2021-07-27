@@ -1,6 +1,8 @@
-package psnr;
+package bdbr;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.util.Arrays;
 
 public class Details {
@@ -9,8 +11,23 @@ public class Details {
     private int time;
     private float[] psnrs;
 
-    public Details(File log) {
-        String s = Utils.read(log);
+    public Details(File file) {
+        String s = "";
+
+        try {
+            BufferedReader reader = new BufferedReader(new FileReader(file));
+
+            String line;
+
+            while ((line = reader.readLine()) != null)
+                s = line;
+
+            reader.close();
+
+        } catch (Exception e) {
+            System.err.format("Exception occurred trying to read '%s'.", file);
+            e.printStackTrace();
+        }
 
         if (!s.isEmpty()) {
             this.bps = parseBps(s);

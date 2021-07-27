@@ -1,64 +1,37 @@
-package psnr;
+package bdbr;
 
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class Utils {
-    public static final String ORIGINAL = "original";
-    public static final String ORIGINAL2 = "v2";
-    public static final String ALT1 = "alt1";
-    public static final String ALT2 = "alt2";
-    public static final String ALT3 = "alt3";
-    public static final String ALT4 = "alt4";
-    public static final String ALT5 = "alt5";
+public class BDBR {
 
-    public static String read(File file) {
-        String s = "";
+    /*
+        first arg:  input/output folder
+        second arg: video variation
+        example: D:/videos alt5
+     */
+    public static void main(String[] args) {
+        if (args.length == 0)
+            System.err.println("No folder received");
+        else {
+            File folder = new File(args[0]);
+            File[] dirs = folder.listFiles();
 
-        try {
-            BufferedReader reader = new BufferedReader(new FileReader(file));
-
-            String line;
-
-            while ((line = reader.readLine()) != null)
-                s = line;
-
-            reader.close();
-
-        } catch (Exception e) {
-            System.err.format("Exception occurred trying to read '%s'.", file);
-            e.printStackTrace();
+            if (dirs != null)
+                for (File d : dirs)
+                    createFile(new Sequence(d), args[1]);
         }
-
-        return s;
     }
 
-    public static void createFile(Sequence sequence) {
-        //createFileForVariation(sequence, ALT1);
-        //createFileForVariation(sequence, ALT2);
-        //createFileForVariation(sequence, ALT3);
-        //createFileForVariation(sequence, ALT4);
-        createFileForVariation(sequence, ALT5);
-    }
-
-    public static void printPSNR(Sequence sequence) {
-        Map<Integer, Details> oriMap = sequence.getDetails(ORIGINAL);
-        List<Details> oriList = new ArrayList<>(oriMap.values());
-
-        float sum = 0;
-
-        for (Details d : oriList) {
-            sum += d.getPsnrs()[0];
-        }
-
-        System.out.println(sum);
-    }
-
-    private static void createFileForVariation(Sequence sequence, String variation) {
+    /*
+        this function collects the psnr and bitrate from log files
+        then makes a python script to calculate the bdbr
+     */
+    private static void createFile(Sequence sequence, String variation) {
         try {
-            Map<Integer, Details> oriMap = sequence.getDetails(ORIGINAL);
+            Map<Integer, Details> oriMap = sequence.getDetails("original");
             Map<Integer, Details> altMap = sequence.getDetails(variation);
 
             if (oriMap != null && altMap != null) {
