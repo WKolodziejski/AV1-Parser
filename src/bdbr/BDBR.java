@@ -21,7 +21,7 @@ public class BDBR {
 
             if (dirs != null)
                 for (File d : dirs)
-                    createFile(new Sequence(d), args[1]);
+                    assemble(new Sequence(d), args[1]);
         }
     }
 
@@ -29,7 +29,7 @@ public class BDBR {
         this function collects the psnr and bitrate from log files
         then makes a python script to calculate the bdbr
      */
-    private static void createFile(Sequence sequence, String variation) {
+    private static void assemble(Sequence sequence, String variation) {
         try {
             Map<Integer, Details> oriMap = sequence.getDetails("original");
             Map<Integer, Details> altMap = sequence.getDetails(variation);
