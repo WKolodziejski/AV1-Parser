@@ -5,7 +5,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-public class VHDL {
+public class FME {
 
     /*
         the parameter is a text file containing a list of filters
@@ -13,7 +13,7 @@ public class VHDL {
      */
     public static void main(String[] args) {
         if (args.length == 0)
-            System.err.println("No folder received");
+            System.err.println("No file received");
         else
             assemble(read(new File(args[0])));
     }
@@ -58,16 +58,12 @@ public class VHDL {
                 writer.append("\t\t\twhen \"" + bin + "\" => --" + Arrays.toString(filters[i]) + "\n");
 
                 writer.append("\t\t\t\tS0 <= \"" + a0.get(filters[i][0]) + "\";\n");
-
-                writer.append("\t\t\t\tsinalA0 <= " + (filters[i][0] < 0 ? "'1'" : "'0'") + ";\n");
-
                 writer.append("\t\t\t\tS1 <= \"" + a1.get(filters[i][1]) + "\";\n");
-
                 writer.append("\t\t\t\tS2 <= \"" + a2.get(filters[i][2]) + "\";\n");
-
                 writer.append("\t\t\t\tS3 <= \"" + a0.get(filters[i][3]) + "\";\n");
 
-                writer.append("\t\t\t\tsinalA1 <= " + (filters[i][0] < 0 ? "'1'" : "'0'") + ";\n\n");
+                writer.append("\t\t\t\tsinalA0 <= " + (filters[i][0] < 0 ? "'1'" : "'0'") + ";\n");
+                writer.append("\t\t\t\tsinalA1 <= " + (filters[i][3] < 0 ? "'1'" : "'0'") + ";\n\n");
             }
 
             writer.append("\t\t\twhen others =>\n" +
