@@ -5,7 +5,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-public class FME {
+public class MainVHDL {
 
     /*
         the parameter is a text file containing a list of filters

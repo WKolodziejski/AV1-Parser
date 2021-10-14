@@ -59,6 +59,7 @@ public class Warped {
                 writer.append("\t\t\t\tS4 <= \"" + numToBin(filters[i][4]) + "\";\n");
                 writer.append("\t\t\t\tS5 <= \"" + numToBin(filters[i][5]) + "\";\n");
                 writer.append("\t\t\t\tS6 <= \"" + numToBin(filters[i][6]) + "\";\n");
+                writer.append("\t\t\t\tS7 <= \"" + numToBin(filters[i][7]) + "\";\n");
 
                 writer.append("\t\t\t\tsinalA0 <= " + (filters[i][0] < 0 ? "'1'" : "'0'") + ";\n");
                 writer.append("\t\t\t\tsinalA1 <= " + (filters[i][1] < 0 ? "'1'" : "'0'") + ";\n");
@@ -66,7 +67,8 @@ public class Warped {
                 writer.append("\t\t\t\tsinalA3 <= " + (filters[i][3] < 0 ? "'1'" : "'0'") + ";\n");
                 writer.append("\t\t\t\tsinalA4 <= " + (filters[i][4] < 0 ? "'1'" : "'0'") + ";\n");
                 writer.append("\t\t\t\tsinalA5 <= " + (filters[i][5] < 0 ? "'1'" : "'0'") + ";\n");
-                writer.append("\t\t\t\tsinalA6 <= " + (filters[i][6] < 0 ? "'1'" : "'0'") + ";\n\n");
+                writer.append("\t\t\t\tsinalA6 <= " + (filters[i][6] < 0 ? "'1'" : "'0'") + ";\n");
+                writer.append("\t\t\t\tsinalA7 <= " + (filters[i][7] < 0 ? "'1'" : "'0'") + ";\n\n");
             }
 
             writer.append("\t\t\twhen others =>\n" +
