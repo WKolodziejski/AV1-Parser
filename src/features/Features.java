@@ -80,9 +80,9 @@ public class Features extends Thread {
             e.printStackTrace();
         }
 
-        System.out.println(filtersFME);
-        System.out.println(filtersWME);
-        System.out.println(blocks);
+        //System.out.println(filtersFME);
+        //System.out.println(filtersWME);
+        //System.out.println(blocks);
 
         latch.countDown();
     }

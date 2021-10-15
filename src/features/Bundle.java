@@ -5,14 +5,16 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
 
 public class Bundle extends Thread {
 
     public final Map<Integer, Integer> filtersFME = new HashMap<>();
     public final Map<Integer, Integer> filtersWME = new HashMap<>();
     public final Map<String, Integer> blocks = new HashMap<>();
+    public final String cq;
     private final List<Features> features;
-    private final String cq;
+    private CountDownLatch latch;
 
     private final String[] filtersFMEstr = {
             "REGULAR",
@@ -34,9 +36,10 @@ public class Bundle extends Thread {
             "AFFINE"
     };
 
-    public Bundle(String cq, List<Features> features) {
+    public Bundle(String cq, List<Features> features, CountDownLatch latch) {
         this.cq = cq;
         this.features = features;
+        this.latch = latch;
     }
 
     @Override
@@ -88,6 +91,8 @@ public class Bundle extends Thread {
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        latch.countDown();
     }
 
 }
