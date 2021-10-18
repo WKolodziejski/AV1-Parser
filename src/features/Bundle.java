@@ -12,7 +12,7 @@ public class Bundle extends Thread {
     public final Map<Integer, Integer> filtersFME = new HashMap<>();
     public final Map<Integer, Integer> filtersWME = new HashMap<>();
     public final Map<String, Integer> blocks = new HashMap<>();
-    public final String cq;
+    public final Integer cq;
     private final List<Features> features;
     private CountDownLatch latch;
 
@@ -36,7 +36,7 @@ public class Bundle extends Thread {
             "AFFINE"
     };
 
-    public Bundle(String cq, List<Features> features, CountDownLatch latch) {
+    public Bundle(Integer cq, List<Features> features, CountDownLatch latch) {
         this.cq = cq;
         this.features = features;
         this.latch = latch;

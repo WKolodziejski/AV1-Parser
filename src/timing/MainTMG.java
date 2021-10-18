@@ -1,7 +1,9 @@
 package timing;
 
 import java.io.*;
+import java.math.BigDecimal;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class MainTMG {
 
@@ -10,27 +12,28 @@ public class MainTMG {
             System.err.println("No folder received");
         else {
 
-            Map<String, List<File>> map = new HashMap<>();
-            map.put("cq20.log", new ArrayList<>());
-            map.put("cq32.log", new ArrayList<>());
-            map.put("cq43.log", new ArrayList<>());
-            map.put("cq55.log", new ArrayList<>());
+            Map<Integer, List<File>> map = new HashMap<>();
+            map.put(20, new ArrayList<>());
+            map.put(32, new ArrayList<>());
+            map.put(43, new ArrayList<>());
+            map.put(55, new ArrayList<>());
 
             File folder = new File(args[0]);
 
             for (File dir : folder.listFiles())
                 if (dir.isDirectory())
-                    for (File file : dir.listFiles())
-                        map.get(file.getName()).add(file);
+                    for (File file : dir.listFiles()) {
+                        Integer key = Integer.valueOf(file.getName().replace("cq", "").replace(".log", ""));
+                        map.get(key).add(file);
+                    }
 
-
-            Map<String, Map<String, Long>> times = new HashMap<>();
+            Map<Integer, Map<String, Long>> times = new TreeMap<>();
             map.forEach((cq, files) -> times.put(cq, computeCQ(cq, files)));
             toCSV(times);
         }
     }
 
-    private static Map<String, Long> computeCQ(String cq, List<File> files) {
+    private static Map<String, Long> computeCQ(Integer cq, List<File> files) {
         Map<String, Long> map = new HashMap<>();
 
         files.forEach(file -> processFile(file).forEach((k, v) -> map.merge(k, v, Long::sum)));
@@ -70,7 +73,7 @@ public class MainTMG {
         return times;
     }
 
-    private static void toCSV(Map<String, Map<String, Long>> map) {
+    private static void toCSV(Map<Integer, Map<String, Long>> map) {
         try {
             FileWriter writer = new FileWriter("timing.csv");
             StringBuilder header = new StringBuilder();
@@ -89,15 +92,25 @@ public class MainTMG {
             writer.append(header);
 
             map.forEach((k, map2) -> {
+                AtomicReference<Long> sum = new AtomicReference<>(0L);
+
+                fields.forEach(s -> {
+                    Long v = map2.get(s);
+
+                    if (v != null)
+                        sum.accumulateAndGet(v, Long::sum);
+                });
+
                 StringBuilder line = new StringBuilder();
-                line.append(k.replace(".log", ""));
+                line.append(k);
                 line.append(";");
 
                 fields.forEach(s -> {
                     Long v = map2.get(s);
 
                     if (v != null) {
-                        line.append(v);
+                        line.append(BigDecimal.valueOf(((double) v / (double) sum.get()) * 100)
+                                .toPlainString().replace(".", ","));
                         line.append(";");
                     }
                 });
@@ -109,6 +122,7 @@ public class MainTMG {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
+
             });
 
             writer.flush();

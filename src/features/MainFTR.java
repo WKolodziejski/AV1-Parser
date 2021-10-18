@@ -3,10 +3,12 @@ package features;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class MainFTR {
 
@@ -22,13 +24,13 @@ public class MainFTR {
                 if (dir.isDirectory())
                     size += dir.listFiles().length;
 
-            Map<String, List<Features>> jobs = new HashMap<>();
+            Map<Integer, List<Features>> jobs = new TreeMap<>();
             CountDownLatch latch = new CountDownLatch(size);
             ExecutorService executor = Executors.newFixedThreadPool(size);
 
             for (File dir : folder.listFiles()) {
                 if (dir.isDirectory()) {
-                    String key = dir.getName();
+                    Integer key = Integer.valueOf(dir.getName().replace("cq", ""));
 
                     jobs.putIfAbsent(key, new ArrayList<>());
 
@@ -78,6 +80,21 @@ public class MainFTR {
 
             System.out.println(fields);
 
+            Map<Integer, Integer> sums = new HashMap<>();
+
+            bundles.forEach(bundle -> {
+                AtomicReference<Integer> sum = new AtomicReference<>(0);
+
+                fields.forEach(s -> {
+                    Integer v = bundle.blocks.get(s);
+
+                    if (v != null)
+                        sum.accumulateAndGet(v, Integer::sum);
+                });
+
+                sums.put(bundle.cq, sum.get());
+            });
+
             header.append("CQ;");
             header.append(fields.toString()
                     .replace("[", "")
@@ -97,7 +114,8 @@ public class MainFTR {
                     Integer v = bundle.blocks.get(s);
 
                     if (v != null) {
-                        line.append(v);
+                        line.append(BigDecimal.valueOf(((double) v / (double) sums.get(bundle.cq)) * 100)
+                                .toPlainString().replace(".", ","));
                         line.append(";");
                     }
                 });
