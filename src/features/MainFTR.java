@@ -10,6 +10,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static features.Bundle.Feature.BLOCKS;
+import static features.Bundle.Feature.FILTER;
+
 public class MainFTR {
 
     public static void main(String[] args) {
@@ -66,17 +69,20 @@ public class MainFTR {
                 e.printStackTrace();
             }
 
-            toCSV(bundles);
+            toCSV(bundles, BLOCKS, "blocks.csv");
+            toCSV(bundles, FILTER, "filters.csv");
         }
     }
 
-    private static void toCSV(List<Bundle> bundles) {
+    private static void toCSV(List<Bundle> bundles, Bundle.Feature feature, String name) {
         try {
-            FileWriter writer = new FileWriter("blocks.csv");
+            FileWriter writer = new FileWriter(name);
             StringBuilder header = new StringBuilder();
 
             Set<String> fields = new HashSet<>();
-            bundles.forEach(bundle -> fields.addAll(bundle.blocks.keySet()));
+            bundles.forEach(bundle -> fields.addAll(bundle.getFeature(feature).keySet()));
+
+            fields.forEach(k -> bundles.forEach(bundle -> bundle.getFeature(feature).putIfAbsent(k, 0)));
 
             System.out.println(fields);
 
@@ -86,7 +92,7 @@ public class MainFTR {
                 AtomicReference<Integer> sum = new AtomicReference<>(0);
 
                 fields.forEach(s -> {
-                    Integer v = bundle.blocks.get(s);
+                    Integer v = bundle.getFeature(feature).get(s);
 
                     if (v != null)
                         sum.accumulateAndGet(v, Integer::sum);
@@ -107,17 +113,18 @@ public class MainFTR {
 
             bundles.forEach(bundle -> {
                 StringBuilder line = new StringBuilder();
-                line.append(bundle.cq);
-                line.append(";");
+                line.append("cq").append(bundle.cq).append(";");
 
                 fields.forEach(s -> {
-                    Integer v = bundle.blocks.get(s);
+                    Integer v = bundle.getFeature(feature).get(s);
 
                     if (v != null) {
                         line.append(BigDecimal.valueOf(((double) v / (double) sums.get(bundle.cq)) * 100)
                                 .toPlainString().replace(".", ","));
-                        line.append(";");
+                    } else {
+                        line.append(0);
                     }
+                    line.append(";");
                 });
 
                 line.append("\n");

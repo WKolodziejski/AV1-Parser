@@ -9,27 +9,37 @@ import java.util.concurrent.CountDownLatch;
 
 public class Features extends Thread {
 
-    public final Map<Integer, Integer> filtersFME = new HashMap<>();
-    public final Map<Integer, Integer> filtersWME = new HashMap<>();
-    public final Map<String, Integer> blocks = new HashMap<>();
+    private final Map<String, Integer> filters = new HashMap<>();
+    private final Map<String, Integer> blocks = new HashMap<>();
     private final CountDownLatch latch;
     private final File file;
+
+    private final String[] fme = {
+            "REGULAR",
+            "SMOOTH",
+            "SHARP",
+            "BILINEAR",
+            "SHARP2",
+            "ALL",
+            "SWITCHABLE_FILTERS",
+            "SWITCHABLE",
+            "EXTRA_FILTERS",
+            "INVALID"
+    };
 
     public Features(File file, CountDownLatch latch) {
         this.file = file;
         this.latch = latch;
+    }
 
-        filtersFME.put(0, 0);
-        filtersFME.put(1, 0);
-        filtersFME.put(2, 0);
-        filtersFME.put(3, 0);
-        filtersFME.put(4, 0);
-        filtersFME.put(5, 0);
-
-        filtersWME.put(0, 0);
-        filtersWME.put(1, 0);
-        filtersWME.put(2, 0);
-        filtersWME.put(3, 0);
+    public Map<String, Integer> getFeature(Bundle.Feature feature) {
+        switch (feature) {
+            case FILTER:
+                return filters;
+            case BLOCKS:
+                return blocks;
+        }
+        return null;
     }
 
     @Override
@@ -41,29 +51,24 @@ public class Features extends Thread {
             String line;
 
             while ((line = reader.readLine()) != null) {
-                String[] tokens = line.split("\\s+");
-                String blockSize = tokens[1];
+                String[] tokens = line.replace("(", "").replace(")", "").replace(",", "").split("\\s+");
+                String blockSize = tokens[0];
 
-                if (tokens[0].equals("T")) {
-                    Integer f1 = Integer.valueOf(tokens[2]);
-                    Integer f2 = Integer.valueOf(tokens[3]);
+                String f1 = "H_" + fme[Integer.parseInt(tokens[1])];
+                String f2 = "V_" + fme[Integer.parseInt(tokens[2])];
 
-                    Integer c1 = filtersFME.get(f1);
-                    Integer c2 = filtersFME.get(f2);
+                Integer c1 = filters.get(f1);
+                Integer c2 = filters.get(f2);
 
-                    filtersFME.put(f1, ++c1);
-                    filtersFME.put(f2, ++c2);
+                if (c1 == null)
+                    filters.put(f1, 1);
+                else
+                    filters.put(f1, ++c1);
 
-                } else if (tokens[0].equals("W")) {
-                    Integer m = Integer.parseInt(tokens[2]);
-
-                    Integer c = filtersWME.get(m);
-
-                    filtersWME.put(m, ++c);
-
-                } else {
-                    System.err.println("Unknown motion type");
-                }
+                if (c2 == null)
+                    filters.put(f2, 1);
+                else
+                    filters.put(f2, ++c2);
 
                 Integer b = blocks.get(blockSize);
 
@@ -79,10 +84,6 @@ public class Features extends Thread {
             System.err.format("Exception occurred trying to read '%s'.", file);
             e.printStackTrace();
         }
-
-        //System.out.println(filtersFME);
-        //System.out.println(filtersWME);
-        //System.out.println(blocks);
 
         latch.countDown();
     }

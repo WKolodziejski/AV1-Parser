@@ -91,7 +91,7 @@ public class MainTMG {
 
             writer.append(header);
 
-            map.forEach((k, map2) -> {
+            map.forEach((cq, map2) -> {
                 AtomicReference<Long> sum = new AtomicReference<>(0L);
 
                 fields.forEach(s -> {
@@ -102,8 +102,7 @@ public class MainTMG {
                 });
 
                 StringBuilder line = new StringBuilder();
-                line.append(k);
-                line.append(";");
+                line.append("cq").append(cq).append(";");
 
                 fields.forEach(s -> {
                     Long v = map2.get(s);
@@ -111,8 +110,11 @@ public class MainTMG {
                     if (v != null) {
                         line.append(BigDecimal.valueOf(((double) v / (double) sum.get()) * 100)
                                 .toPlainString().replace(".", ","));
-                        line.append(";");
+                    } else {
+                        line.append(0);
                     }
+
+                    line.append(";");
                 });
 
                 line.append("\n");
@@ -131,8 +133,6 @@ public class MainTMG {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-
     }
 
 }

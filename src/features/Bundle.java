@@ -2,39 +2,16 @@ package features;
 
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.CountDownLatch;
 
 public class Bundle extends Thread {
 
-    public final Map<Integer, Integer> filtersFME = new HashMap<>();
-    public final Map<Integer, Integer> filtersWME = new HashMap<>();
-    public final Map<String, Integer> blocks = new HashMap<>();
-    public final Integer cq;
+    private final Map<String, Integer> filters = new HashMap<>();
+    private final Map<String, Integer> blocks = new HashMap<>();
     private final List<Features> features;
-    private CountDownLatch latch;
-
-    private final String[] filtersFMEstr = {
-            "REGULAR",
-            "SMOOTH",
-            "SHARP",
-            "BILINEAR",
-            "SHARP2",
-            "ALL",
-            "SWITCHABLE_FILTERS",
-            "SWITCHABLE",
-            "EXTRA_FILTERS",
-            "INVALID"
-    };
-
-    private final String[] filtersWMEstr = {
-            "IDENTITY",
-            "TRANSLATION",
-            "ROTZOOM",
-            "AFFINE"
-    };
+    private final CountDownLatch latch;
+    public final Integer cq;
 
     public Bundle(Integer cq, List<Features> features, CountDownLatch latch) {
         this.cq = cq;
@@ -42,44 +19,53 @@ public class Bundle extends Thread {
         this.latch = latch;
     }
 
+    public Map<String, Integer> getFeature(Feature feature) {
+        switch (feature) {
+            case FILTER:
+                return filters;
+            case BLOCKS:
+                return blocks;
+        }
+        return null;
+    }
+
+    public enum Feature {
+        FILTER, BLOCKS
+    }
+
+    private void prepareHash(Feature feature) {
+        Set<String> keys = new HashSet<>();
+        features.forEach(f -> keys.addAll(f.getFeature(feature).keySet()));
+        keys.forEach(k -> getFeature(feature).putIfAbsent(k, 0));
+
+        features.forEach(f -> f.getFeature(feature).forEach((k, c) -> {
+            Integer i = getFeature(feature).get(k);
+            i += c;
+            getFeature(feature).put(k, i);
+        }));
+    }
+
     @Override
     public void run() {
         super.run();
 
-        for (Features feature : features) {
-            feature.filtersFME.forEach((k, v) -> filtersFME.merge(k, v, Integer::sum));
-            feature.filtersWME.forEach((k, v) -> filtersWME.merge(k, v, Integer::sum));
-            feature.blocks.forEach((k, v) -> blocks.merge(k, v, Integer::sum));
-        }
+        prepareHash(Feature.BLOCKS);
+        prepareHash(Feature.FILTER);
 
         try {
             FileWriter writer = new FileWriter(cq + ".log");
 
-            writer.append("---------INTERPOLATION---------\n");
-
-            filtersFME.forEach((k, c) -> {
+            filters.forEach((k, c) -> {
                 try {
-                    writer.append(filtersFMEstr[k] + "=" + c + "\n");
+                    writer.append(k).append("=").append(String.valueOf(c)).append("\n");
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
             });
-
-            writer.append("-------------WARP-------------\n");
-
-            filtersWME.forEach((k, c) -> {
-                try {
-                    writer.append(filtersWMEstr[k] + "=" + c + "\n");
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            });
-
-            writer.append("-------------BLOCK-------------\n");
 
             blocks.forEach((k, c) -> {
                 try {
-                    writer.append(k + "=" + c + "\n");
+                    writer.append(k).append("=").append(String.valueOf(c)).append("\n");
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
