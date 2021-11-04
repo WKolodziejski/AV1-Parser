@@ -10,13 +10,13 @@ public class Bundle extends Thread {
     private final Map<String, Integer> filters = new HashMap<>();
     private final Map<String, Integer> blocks = new HashMap<>();
     private final List<Features> features;
-    private final CountDownLatch latch;
+    //private final CountDownLatch latch;
     public final Integer cq;
 
-    public Bundle(Integer cq, List<Features> features, CountDownLatch latch) {
+    public Bundle(Integer cq, List<Features> features) {
         this.cq = cq;
         this.features = features;
-        this.latch = latch;
+        //this.latch = latch;
     }
 
     public Map<String, Integer> getFeature(Feature feature) {
@@ -78,7 +78,7 @@ public class Bundle extends Thread {
             e.printStackTrace();
         }
 
-        latch.countDown();
+        //latch.countDown();
     }
 
 }

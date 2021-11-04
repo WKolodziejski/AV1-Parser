@@ -5,12 +5,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.*;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
-
-import static features.Bundle.Feature.BLOCKS;
 import static features.Bundle.Feature.FILTER;
 
 public class MainFTR {
@@ -21,56 +16,58 @@ public class MainFTR {
         else {
             File folder = new File(args[0]);
 
-            int size = 0;
-
-            for (File dir : folder.listFiles())
-                if (dir.isDirectory())
-                    size += dir.listFiles().length;
-
-            Map<Integer, List<Features>> jobs = new TreeMap<>();
-            CountDownLatch latch = new CountDownLatch(size);
-            ExecutorService executor = Executors.newFixedThreadPool(size);
+            Map<String, Map<Integer, List<Features>>> jobs = new TreeMap<>();
 
             for (File dir : folder.listFiles()) {
                 if (dir.isDirectory()) {
-                    Integer key = Integer.valueOf(dir.getName().replace("cq", ""));
+                    Integer cq = Integer.valueOf(dir.getName().replace("cq", ""));
 
-                    jobs.putIfAbsent(key, new ArrayList<>());
+                    for (File file : dir.listFiles()) {
+                        String res = file.getName();
+                        String w = res.substring(0, res.lastIndexOf('x'));
+                        w = w.substring(w.lastIndexOf('_') + 1);
+                        String h = res.substring(res.lastIndexOf('x') + 1);
+                        h = h.substring(0, h.indexOf('_'));
+                        res = w + "x" + h;
 
-                    for (File file : dir.listFiles())
-                        jobs.get(key).add(new Features(file, latch));
+                        jobs.putIfAbsent(res, new TreeMap<>());
+                        Map<Integer, List<Features>> map = jobs.get(res);
+
+                        map.putIfAbsent(cq, new ArrayList<>());
+                        map.get(cq).add(new Features(file));
+                    }
                 }
             }
 
-            jobs.forEach((k, j) -> j.forEach(executor::execute));
-            executor.shutdown();
+            jobs.forEach((res, map) -> map.forEach((cq, job) -> job.forEach(Thread::start)));
+            jobs.forEach((res, map) -> map.forEach((cq, job) -> job.forEach(features -> {
+                try {
+                    features.join();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            })));
 
-            try {
-                latch.await();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+            Map<String, List<Bundle>> bundles = new TreeMap<>();
 
-            List<Bundle> bundles = new ArrayList<>();
-            CountDownLatch latch2 = new CountDownLatch(jobs.size());
-            ExecutorService executor2 = Executors.newFixedThreadPool(jobs.size());
+            jobs.forEach((res, map) -> map.forEach((cq, job) -> {
+                Bundle bundle = new Bundle(cq, job);
+                bundles.putIfAbsent(res, new ArrayList<>());
+                bundles.get(res).add(bundle);
+                bundle.start();
+            }));
 
-            jobs.forEach((k, j) -> {
-                Bundle bundle = new Bundle(k, j, latch2);
-                bundles.add(bundle);
-                executor2.execute(bundle);
+            bundles.forEach((res, b) -> {
+                b.forEach(bundle -> {
+                    try {
+                        bundle.join();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                });
+
+                toCSV(b, FILTER, res + ".csv");
             });
-
-            executor2.shutdown();
-
-            try {
-                latch2.await();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-
-            toCSV(bundles, BLOCKS, "blocks.csv");
-            toCSV(bundles, FILTER, "filters.csv");
         }
     }
 
@@ -86,7 +83,7 @@ public class MainFTR {
 
             System.out.println(fields);
 
-            Map<Integer, Integer> sums = new HashMap<>();
+            Map<Integer, Integer> sums = new TreeMap<>();
 
             bundles.forEach(bundle -> {
                 AtomicReference<Integer> sum = new AtomicReference<>(0);

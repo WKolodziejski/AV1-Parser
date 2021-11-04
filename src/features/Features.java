@@ -11,7 +11,7 @@ public class Features extends Thread {
 
     private final Map<String, Integer> filters = new HashMap<>();
     private final Map<String, Integer> blocks = new HashMap<>();
-    private final CountDownLatch latch;
+    //private final CountDownLatch latch;
     private final File file;
 
     private final String[] fme = {
@@ -27,9 +27,9 @@ public class Features extends Thread {
             "INVALID"
     };
 
-    public Features(File file, CountDownLatch latch) {
+    public Features(File file) {
         this.file = file;
-        this.latch = latch;
+        //this.latch = latch;
     }
 
     public Map<String, Integer> getFeature(Bundle.Feature feature) {
@@ -85,7 +85,7 @@ public class Features extends Thread {
             e.printStackTrace();
         }
 
-        latch.countDown();
+        //latch.countDown();
     }
 
 }
