@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
-import static features.Bundle.Feature.FILTER;
 
 public class MainFTR {
 
@@ -29,6 +28,9 @@ public class MainFTR {
                         String h = res.substring(res.lastIndexOf('x') + 1);
                         h = h.substring(0, h.indexOf('_'));
                         res = w + "x" + h;
+
+                        if (res.equals("3840x2160"))
+                            res = "4096x2160";
 
                         jobs.putIfAbsent(res, new TreeMap<>());
                         Map<Integer, List<Features>> map = jobs.get(res);
@@ -66,20 +68,25 @@ public class MainFTR {
                     }
                 });
 
-                toCSV(b, FILTER, res + ".csv");
+                toCSV(b, res);
             });
         }
     }
 
-    private static void toCSV(List<Bundle> bundles, Bundle.Feature feature, String name) {
+    private static void toCSV(List<Bundle> bundles, String name) {
+        processCSV(bundles, name, "H");
+        processCSV(bundles, name, "V");
+    }
+
+    private static void processCSV(List<Bundle> bundles, String name, String o) {
         try {
-            FileWriter writer = new FileWriter(name);
+            FileWriter writer = new FileWriter(name + "_" + o + ".csv");
             StringBuilder header = new StringBuilder();
 
             Set<String> fields = new HashSet<>();
-            bundles.forEach(bundle -> fields.addAll(bundle.getFeature(feature).keySet()));
+            bundles.forEach(bundle -> fields.addAll(bundle.filters.get(o).keySet()));
 
-            fields.forEach(k -> bundles.forEach(bundle -> bundle.getFeature(feature).putIfAbsent(k, 0)));
+            fields.forEach(k -> bundles.forEach(bundle -> bundle.filters.get(o).putIfAbsent(k, 0)));
 
             System.out.println(fields);
 
@@ -89,7 +96,7 @@ public class MainFTR {
                 AtomicReference<Integer> sum = new AtomicReference<>(0);
 
                 fields.forEach(s -> {
-                    Integer v = bundle.getFeature(feature).get(s);
+                    Integer v = bundle.filters.get(o).get(s);
 
                     if (v != null)
                         sum.accumulateAndGet(v, Integer::sum);
@@ -104,6 +111,7 @@ public class MainFTR {
                     .replace("]", "")
                     .replace(":", "")
                     .replace(", ", ";"));
+            header.append(";");
             header.append("\n");
 
             writer.append(header);
@@ -113,11 +121,10 @@ public class MainFTR {
                 line.append("cq").append(bundle.cq).append(";");
 
                 fields.forEach(s -> {
-                    Integer v = bundle.getFeature(feature).get(s);
+                    Integer v = bundle.filters.get(o).get(s);
 
                     if (v != null) {
-                        line.append(BigDecimal.valueOf(((double) v / (double) sums.get(bundle.cq)) * 100)
-                                .toPlainString().replace(".", ","));
+                        line.append(BigDecimal.valueOf(((double) v / (double) sums.get(bundle.cq)) * 100).toPlainString());
                     } else {
                         line.append(0);
                     }

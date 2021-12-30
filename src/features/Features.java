@@ -3,14 +3,16 @@ package features;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.concurrent.CountDownLatch;
 
 public class Features extends Thread {
 
-    private final Map<String, Integer> filters = new HashMap<>();
-    private final Map<String, Integer> blocks = new HashMap<>();
+    public final Map<String, Map<String, Integer>> filters = new TreeMap<>();
+    //private final Map<String, Integer> blocks = new HashMap<>();
     //private final CountDownLatch latch;
     private final File file;
 
@@ -30,9 +32,11 @@ public class Features extends Thread {
     public Features(File file) {
         this.file = file;
         //this.latch = latch;
+        filters.put("H", new TreeMap<>());
+        filters.put("V", new TreeMap<>());
     }
 
-    public Map<String, Integer> getFeature(Bundle.Feature feature) {
+    /*public Map<String, Integer> getFeature(Bundle.Feature feature) {
         switch (feature) {
             case FILTER:
                 return filters;
@@ -40,48 +44,46 @@ public class Features extends Thread {
                 return blocks;
         }
         return null;
-    }
+    }*/
 
     @Override
     public void run() {
         super.run();
 
+        String[] tokens = null;
+        String line = null;
+
         try {
             BufferedReader reader = new BufferedReader(new FileReader(file));
-            String line;
 
             while ((line = reader.readLine()) != null) {
-                String[] tokens = line.replace("(", "").replace(")", "").replace(",", "").split("\\s+");
-                String blockSize = tokens[0];
+                tokens = line.replace("(", "").replace(")", "").replace(",", "").split("\\s+");
 
-                String f1 = "H_" + fme[Integer.parseInt(tokens[1])];
-                String f2 = "V_" + fme[Integer.parseInt(tokens[2])];
+                try {
+                    String f1 = fme[Integer.parseInt(tokens[1])];
+                    String f2 = fme[Integer.parseInt(tokens[2])];
 
-                Integer c1 = filters.get(f1);
-                Integer c2 = filters.get(f2);
+                    Integer c1 = filters.get("H").get(f1);
+                    Integer c2 = filters.get("V").get(f2);
 
-                if (c1 == null)
-                    filters.put(f1, 1);
-                else
-                    filters.put(f1, ++c1);
+                    if (c1 == null)
+                        filters.get("H").put(f1, 1);
+                    else
+                        filters.get("H").put(f1, ++c1);
 
-                if (c2 == null)
-                    filters.put(f2, 1);
-                else
-                    filters.put(f2, ++c2);
-
-                Integer b = blocks.get(blockSize);
-
-                if (b == null)
-                    blocks.put(blockSize, 1);
-                else
-                    blocks.put(blockSize, ++b);
+                    if (c2 == null)
+                        filters.get("V").put(f2, 1);
+                    else
+                        filters.get("V").put(f2, ++c2);
+                } catch (Exception e) {
+                    System.err.println(line);
+                }
             }
 
             reader.close();
 
         } catch (Exception e) {
-            System.err.format("Exception occurred trying to read '%s'.", file);
+            System.err.format("Exception occurred trying to read '%s'.\n", file);
             e.printStackTrace();
         }
 

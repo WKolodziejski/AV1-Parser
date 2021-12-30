@@ -7,8 +7,8 @@ import java.util.concurrent.CountDownLatch;
 
 public class Bundle extends Thread {
 
-    private final Map<String, Integer> filters = new HashMap<>();
-    private final Map<String, Integer> blocks = new HashMap<>();
+    public final Map<String, Map<String, Integer>> filters = new TreeMap<>();
+    //private final Map<String, Integer> blocks = new HashMap<>();
     private final List<Features> features;
     //private final CountDownLatch latch;
     public final Integer cq;
@@ -19,7 +19,7 @@ public class Bundle extends Thread {
         //this.latch = latch;
     }
 
-    public Map<String, Integer> getFeature(Feature feature) {
+    /*public Map<String, Integer> getFeature(Feature feature) {
         switch (feature) {
             case FILTER:
                 return filters;
@@ -31,9 +31,9 @@ public class Bundle extends Thread {
 
     public enum Feature {
         FILTER, BLOCKS
-    }
+    }*/
 
-    private void prepareHash(Feature feature) {
+    /*private void prepareHash(Feature feature) {
         Set<String> keys = new HashSet<>();
         features.forEach(f -> keys.addAll(f.getFeature(feature).keySet()));
         keys.forEach(k -> getFeature(feature).putIfAbsent(k, 0));
@@ -43,16 +43,33 @@ public class Bundle extends Thread {
             i += c;
             getFeature(feature).put(k, i);
         }));
+    }*/
+
+    private void prepareMap(String o) {
+        filters.put(o, new TreeMap<>());
+
+        Set<String> keys = new HashSet<>();
+        features.forEach(f -> keys.addAll(f.filters.get(o).keySet()));
+        keys.forEach(k -> filters.get(o).putIfAbsent(k, 0));
+
+        features.forEach(f -> f.filters.get(o).forEach((k, c) -> {
+            Integer i = filters.get(o).get(k);
+            i += c;
+            filters.get(o).put(k, i);
+        }));
     }
 
     @Override
     public void run() {
         super.run();
 
-        prepareHash(Feature.BLOCKS);
-        prepareHash(Feature.FILTER);
+        /*prepareHash(Feature.BLOCKS);
+        prepareHash(Feature.FILTER);*/
 
-        try {
+        prepareMap("H");
+        prepareMap("V");
+
+        /*try {
             FileWriter writer = new FileWriter(cq + ".log");
 
             filters.forEach((k, c) -> {
@@ -76,7 +93,7 @@ public class Bundle extends Thread {
 
         } catch (IOException e) {
             e.printStackTrace();
-        }
+        }*/
 
         //latch.countDown();
     }
