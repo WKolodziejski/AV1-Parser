@@ -47,12 +47,24 @@ public class MainBDBR {
             FileWriter writer = new FileWriter(path + "\\bdbr.py");
 
             writer.append("from bjontegaard_metric import *\n");
+            writer.append("import csv\n");
+            writer.append("def localize_floats(row):\n" +
+                    "    return [\n" +
+                    "        str(el).replace('.', ',') if isinstance(el, float) else el \n" +
+                    "        for el in row\n" +
+                    "    ]\n");
+            writer.append("f = open('bdbr.csv', 'w')\n");
+            writer.append("writer = csv.writer(f, delimiter=\";\", dialect=\"excel\")\n");
 
             for (Sequence sequence : sequences) {
                 writer.append("print ('\\n---" + sequence.getName() + "---')\n");
+                writer.append("header = ['" + sequence.getName() + "']\n");
+                writer.append("bdbrs = ['bdbr']\n");
+                writer.append("times = ['time']\n");
 
                 for (String variation : variations) {
                     writer.append("print ('\\t" + variation + "')\n");
+                    writer.append("header.append('" + variation + "')\n");
 
                     Map<Integer, Details> oriMap = sequence.getDetails(reference);
                     Map<Integer, Details> altMap = sequence.getDetails(variation);
@@ -105,14 +117,22 @@ public class MainBDBR {
                     writer.append(r2);
                     writer.append(psnr2);
 
-                    writer.append("print ('\\t\\tbdbr = ', BD_RATE(R1, PSNR1, R2, PSNR2, 1))\n");
+                    writer.append("bdbr = BD_RATE(R1, PSNR1, R2, PSNR2, 1)\n");
+                    writer.append("print ('\\t\\tbdbr = ', bdbr)\n");
+                    writer.append("bdbrs.append(bdbr)\n");
 
-                    float time = 1 - (float) t1 / t2;
+                    float time = (1 - (float) t1 / t2) * 100f;
 
-                    writer.append("print ('\\t\\ttime =  " + time * 100f + "')\n");
+                    writer.append("print ('\\t\\ttime =  " + time + "')\n");
+                    writer.append("times.append(" + time + ")\n");
                 }
+
+                writer.append("writer.writerow(header)\n");
+                writer.append("writer.writerow(localize_floats(times))\n");
+                writer.append("writer.writerow(localize_floats(bdbrs))\n");
             }
 
+            writer.append("f.close()\n");
             writer.flush();
             writer.close();
         } catch (IOException e) {
