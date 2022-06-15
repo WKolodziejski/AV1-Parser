@@ -15,25 +15,25 @@ public class Sequence {
         File[] dirs = folder.listFiles();
 
         if (dirs != null)
-            for (File d: dirs) {
-                String n = d.getName();
+            for (File dir: dirs) {
+                String name = dir.getName();
 
-                File subFolder = new File(d.getPath());
+                File subFolder = new File(dir.getPath());
                 File[] logs = subFolder.listFiles();
 
                 if (logs != null) {
                     Map<Integer, Details> map = new TreeMap<>();
 
-                    for (File l : logs) {
-                        String sn = l.getName();
+                    for (File log : logs) {
+                        String logName = log.getName();
 
-                        if (sn.contains(".log")) {
-                            int cq = Integer.parseInt(sn.substring(sn.lastIndexOf("cq") + 2, sn.indexOf(".")));
-                            map.put(cq, new Details(l));
+                        if (logName.contains(".log")) {
+                            int cq = Integer.parseInt(logName.substring(logName.lastIndexOf("cq") + 2, logName.indexOf(".")));
+                            map.put(cq, new Details(log));
                         }
                     }
 
-                    stats.put(n.substring(n.lastIndexOf("_") + 1), map);
+                    stats.put(name, map);
                 }
             }
         else

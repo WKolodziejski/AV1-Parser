@@ -8,7 +8,7 @@ import java.util.Arrays;
 public class Details {
 
     private int bps;
-    private int time;
+    private long time;
     private float[] psnrs;
 
     public Details(File file) {
@@ -67,7 +67,7 @@ public class Details {
         return bps;
     }
 
-    public int getTime() {
+    public long getTime() {
         return time;
     }
 
